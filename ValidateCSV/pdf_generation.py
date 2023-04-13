@@ -2,6 +2,9 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import Table, TableStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+import ast
 import os
 
 def generate_pdf(results, validated_files, total_rows):
@@ -41,13 +44,44 @@ def generate_error_pdf(errors):
 
     elements = []
     styles = getSampleStyleSheet()
+    elements.append(Paragraph("NOT VALID", styles['Title']))
+    elements.append(Spacer(1, 12))
 
-    elements.append(Paragraph("NOT VALID", styles['Heading1']))
-    elements.append(Spacer(1, 24))
-
+    current_file = ""
     for error in errors:
-        elements.append(Paragraph(error, styles['Normal']))
-        elements.append(Spacer(1, 12))
+        error_dict = ast.literal_eval(error)
+        file_name = error_dict["file"]
+        row_num = error_dict["row"]
+        error_message = error_dict["error"]
+
+        if current_file != file_name:
+            if current_file:
+                elements.append(Table(error_table_data, hAlign='LEFT'))
+                elements.append(Spacer(1, 12))
+            current_file = file_name
+            elements.append(Paragraph(file_name, styles['Heading2']))
+            elements.append(Spacer(1, 12))
+            error_table_data = [["Row", "Error"]]
+        
+        error_table_data.append([row_num, error_message])
+
+    if current_file:
+        error_table = Table(error_table_data, hAlign='LEFT')
+        error_table.setStyle(TableStyle([
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 0), (-1, -1), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
+            ('TOPPADDING', (0, 1), (-1, -1), 8),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        elements.append(error_table)
 
     doc.build(elements)
 
