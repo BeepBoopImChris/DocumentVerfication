@@ -26,11 +26,11 @@ Installation
 
 -Clone the repository:
 
-git clone https://github.com/yourusername/ushur-csv-validation.git
+git clone https://github.com/BeepBoopImChris/DocumentVerfication
 
 -Navigate to the project directory:
 
-cd ushur-csv-validation
+cd DocumentVerfication
 
 -Install the required Python packages:
 
